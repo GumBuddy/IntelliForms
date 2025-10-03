@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="theme-color" content="#3498db">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Generador de Formularios desde Documentos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header con animación -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1 class="app-title">
+                    <span class="title-word">Generador</span>
+                    <span class="title-word">de</span>
+                    <span class="title-word highlight">Formularios</span>
+                </h1>
+                <p class="app-subtitle">Transforma tus documentos en formularios interactivos</p>
+            </div>
+            <div class="header-icon">
+                <i class="fas fa-file-alt"></i>
+            </div>
+        </header>
+        <!-- Sección de carga con efectos visuales -->
+        <main class="main-content">
+            <section class="upload-section card">
+                <h2 class="section-title">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    Subir Documento
+                </h2>
+                <div class="drop-zone" id="drop-zone">
+                    <div class="drop-zone-content">
+                        <div class="drop-icon-container">
+                            <i class="fas fa-cloud-upload-alt drop-icon"></i>
+                        </div>
+                        <p class="drop-text">Arrastra y suelta tu archivo aquí</p>
+                        <p class="drop-or">o</p>
+                        <label for="archivo-input" class="file-input-label">
+                            <span>Seleccionar archivo</span>
+                            <i class="fas fa-folder-open"></i>
+                        </label>
+                        <input type="file" id="archivo-input" accept=".txt,.pdf,.doc,.docx,.png,.jpg" hidden>
+                        <div class="file-types">
+                            <i class="fas fa-file-pdf"></i>
+                            <i class="fas fa-file-word"></i>
+                            <i class="fas fa-file-image"></i>
+                            <i class="fas fa-file-alt"></i>
+                            <span>Formatos soportados: .txt, .pdf, .doc, .docx, .png, .jpg</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Aquí puedes agregar más UI -->
+            </section>
+            <!-- Selector de plantilla, botón y contenedor de formulario generado -->
+            <section class="form-section card">
+                <h2 class="section-title">
+                    <i class="fas fa-paint-brush"></i>
+                    Selecciona una plantilla
+                </h2>
+                <select id="plantilla-select">
+                    <option value="">Elige una plantilla...</option>
+                </select>
+                <button id="generar-btn">Generar Formulario</button>
+                <div id="mensaje-estado"></div>
+                <div id="formulario-generado"></div>
+                <button id="exportar-html-btn" style="display:none;margin-top:16px;">Exportar como HTML</button>
+            </section>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

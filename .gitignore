@@ -1,0 +1,10 @@
+# IntelliForms .gitignore
+node_modules/
+dist/
+build/
+.env
+.env.*
+.DS_Store
+*.log
+# Carpeta de intercambio temporal
+Intercambio/

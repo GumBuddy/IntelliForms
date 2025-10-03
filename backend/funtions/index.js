@@ -1,3 +1,20 @@
+// Endpoint HTTP para generación de formulario dinámico (subida real de archivos)
+const { generarFormularioHttp } = require('./src/generarFormularioHttp');
+/**
+ * Endpoint HTTP para generación de formulario dinámico (subida real de archivos)
+ */
+exports.generarFormularioHttp = generarFormularioHttp;
+// Endpoints para plantillas y generación de formulario
+const { getTemplates, generarFormulario } = require('./src/formularioEndpoints');
+/**
+ * Endpoint HTTP para obtener lista de plantillas
+ */
+exports.getTemplates = getTemplates;
+
+/**
+ * Endpoint HTTP para generar formulario dinámico
+ */
+exports.generarFormulario = generarFormulario;
 /**
  * Punto de entrada para las funciones de Google Cloud
  * 
