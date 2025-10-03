@@ -1,0 +1,47 @@
+Requisitos del backend
+Este componente requiere dos Cloud Functions implementadas:
+
+getSignedUrl: Genera URLs firmadas para la carga
+Método: POST
+Cuerpo: { fileName: string, fileType: string }
+Respuesta: { signedUrl: string, fileUrl: string }
+processFile: Procesa los archivos subidos
+Método: POST
+Cuerpo: { fileName: string, fileUrl: string, fileType: string }
+Respuesta: Confirmación de procesamiento iniciado
+Configuración
+Las siguientes constantes pueden personalizarse:
+
+ALLOWED_FILE_TYPES: Tipos MIME permitidos
+MAX_FILE_SIZE: Tamaño máximo de archivo (10MB por defecto)
+ALLOWED_EXTENSIONS: Extensiones de archivo permitidas
+Estructura de archivos
+
+Line Wrapping
+
+src/components/FileUploader/
+├── FileUploader.jsx      # Componente principal
+├── FileUploader.test.jsx # Pruebas unitarias
+├── index.jsx            # Exportación por defecto
+└── README.md            # Documentación
+
+Pruebas
+Para ejecutar las pruebas unitarias:
+
+bash
+
+Line Wrapping
+
+Collapse
+Copy
+1
+npm test src/components/FileUploader/FileUploader.test.jsx
+Dependencias
+React
+TailwindCSS
+React Testing Library (para pruebas)
+Notas de implementación
+El componente utiliza URLs firmadas para subir archivos directamente a Google Cloud Storage
+La barra de progreso es simulada (no muestra el progreso real de la subida)
+Las URLs de las Cloud Functions deben ser reemplazadas con las URLs reales
+El componente está diseñado para integrarse con la arquitectura serverless de IntelliForms

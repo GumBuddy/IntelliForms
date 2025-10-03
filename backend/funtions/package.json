@@ -1,0 +1,32 @@
+{
+  "name": "intelliforms-backend",
+  "version": "1.0.0",
+  "description": "Backend serverless para IntelliForms",
+  "main": "index.js",
+  "scripts": {
+    "start": "functions-framework --target=generateUploadUrl",
+    "deploy": "gcloud functions deploy generateUploadUrl --runtime nodejs16 --trigger-http --allow-unauthenticated",
+    "deploy-all": "echo 'Desplegando todas las funciones...' && npm run deploy",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "dependencies": {
+    "@google-cloud/storage": "^6.9.0",
+    "@google-cloud/functions-framework": "^3.1.2"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0",
+    "supertest": "^6.3.3"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": [
+    "intelliforms",
+    "serverless",
+    "google-cloud-functions",
+    "file-upload"
+  ],
+  "author": "Tu Nombre",
+  "license": "MIT"
+}
