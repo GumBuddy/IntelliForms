@@ -1,73 +1,41 @@
-// Endpoint HTTP para generación de formulario dinámico (subida real de archivos)
-const { generarFormularioHttp } = require('./src/generarFormularioHttp');
-/**
- * Endpoint HTTP para generación de formulario dinámico (subida real de archivos)
- */
-exports.generarFormularioHttp = generarFormularioHttp;
-// Endpoints para plantillas y generación de formulario
-const { getTemplates, generarFormulario } = require('./src/formularioEndpoints');
-/**
- * Endpoint HTTP para obtener lista de plantillas
- */
-exports.getTemplates = getTemplates;
-
-/**
- * Endpoint HTTP para generar formulario dinámico
- */
-exports.generarFormulario = generarFormulario;
 /**
  * Punto de entrada para las funciones de Google Cloud
- * 
+ *
  * Este archivo exporta todas las funciones de Cloud Functions
  * para que puedan ser desplegadas individualmente.
- * 
+ *
  * @module index
  */
 
 // Importar las funciones desde sus respectivos módulos
-const { generateUploadUrl } = require('./src/generateUploadUrl');
-const { notifyFileUploaded } = require('./src/notifyFileUploaded');
-const { extractTextFromGCSFile } = require('./src/extractTextFromGCSFile');
+const { generateUploadUrl } = require('./scr/generateUploadUrl');
+const { notifyFileUploaded } = require('./scr/notifyFileUploaded');
+const { processFile } = require('./scr/processFile');
+const { extractTextFromGCSFile } = require('./scr/extractTextFromGCSFile');
+const { generarFormularioHttp } = require('./scr/generarFormularioHttp');
+const { getTemplates, generarFormulario } = require('./scr/formularioEndpoints');
 
-// Exportar la función para generar URLs firmadas
-/**
- * Función que genera URLs firmadas para subir archivos a Google Cloud Storage
- * @type {Function}
- */
+// --- Endpoints Principales del Flujo de URLs Firmadas ---
+
+/** Endpoint HTTP para generar URLs firmadas para subir archivos a GCS. */
 exports.generateUploadUrl = generateUploadUrl;
 
-/**
- * Función que notifica y procesa archivos subidos
- * @type {Function}
- */
+/** Endpoint HTTP que recibe la notificación de un archivo subido e inicia el procesamiento asíncrono. */
 exports.notifyFileUploaded = notifyFileUploaded;
 
-/**
- * Función que extrae texto de archivos subidos a GCS (trigger de almacenamiento)
- * @type {Function}
- */
-exports.extractTextFromGCSFile = extractTextFromGCSFile;
+/** Función que se activa por Pub/Sub para procesar el archivo en segundo plano. */
+exports.processFile = processFile;
 
-/**
- * Endpoint HTTP para extraer texto de un archivo en GCS (requiere bucket y fileName por POST)
- * @type {Function}
- */
-exports.extractTextFromGCSFileHttp = async (req, res) => {
-	try {
-		if (req.method !== 'POST') {
-			res.status(405).json({ success: false, error: 'Método no permitido. Use POST.' });
-			return;
-		}
-		const { bucket, fileName } = req.body;
-		if (!bucket || !fileName) {
-			res.status(400).json({ success: false, error: 'Faltan parámetros bucket y fileName.' });
-			return;
-		}
-		// Simular evento de GCS
-		const event = { bucket, name: fileName };
-		const text = await extractTextFromGCSFile(event, {});
-		res.status(200).json({ success: true, text });
-	} catch (error) {
-		res.status(500).json({ success: false, error: error.message });
-	}
-};
+/** Función diseñada para activarse por un GCS Storage Trigger y extraer texto. */
+exports.extractTextFromGCSFileTrigger = extractTextFromGCSFile;
+
+// --- Endpoints Alternativos y de Utilidad ---
+
+/** Endpoint HTTP para el flujo síncrono: subida directa de archivo y generación de formulario. */
+exports.generarFormularioHttp = generarFormularioHttp;
+
+/** Endpoint HTTP para obtener la lista de plantillas disponibles. */
+exports.getTemplates = getTemplates;
+
+/** Endpoint HTTP de prueba para generar un formulario simulado. */
+exports.generarFormularioSimulado = generarFormulario;

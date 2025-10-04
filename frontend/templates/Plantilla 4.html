@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Evaluación Académica</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Merriweather', serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+        
+        .exam-container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        
+        .exam-header {
+            background: linear-gradient(90deg, #1a365d, #2c5282);
+            color: white;
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .exam-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .exam-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        
+        .exam-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        
+        .exam-timer {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+        
+        .timer-icon {
+            margin-right: 8px;
+        }
+        
+        .exam-info {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 30px;
+            background: #edf2f7;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+        
+        .info-icon {
+            margin-right: 8px;
+            color: #3182ce;
+        }
+        
+        .exam-content {
+            padding: 30px;
+        }
+        
+        .question-section {
+            margin-bottom: 30px;
+        }
+        
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        
+        .question-number {
+            background: #3182ce;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .question-category {
+            background: #edf2f7;
+            color: #4a5568;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-left: 40px;
+            color: #2d3748;
+        }
+        
+        .options-container {
+            margin-left: 40px;
+        }
+        
+        .option-item {
+            display: flex;
+            margin-bottom: 15px;
+            align-items: flex-start;
+        }
+        
+        .option-marker {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #cbd5e0;
+            border-radius: 50%;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: transparent;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        
+        .option-text {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .option-text:hover {
+            background: #f7fafc;
+            border-color: #cbd5e0;
+        }
+        
+        .option-item.selected .option-marker {
+            background: #3182ce;
+            border-color: #3182ce;
+            color: white;
+        }
+        
+        .option-item.selected .option-text {
+            background: #ebf8ff;
+            border-color: #3182ce;
+        }
+        
+        .option-item.correct .option-marker {
+            background: #38a169;
+            border-color: #38a169;
+            color: white;
+        }
+        
+        .option-item.correct .option-text {
+            background: #f0fff4;
+            border-color: #38a169;
+        }
+        
+        .option-item.incorrect .option-marker {
+            background: #e53e3e;
+            border-color: #e53e3e;
+            color: white;
+        }
+        
+        .option-item.incorrect .option-text {
+            background: #fff5f5;
+            border-color: #e53e3e;
+        }
+        
+        .feedback-section {
+            margin: 25px 0 25px 40px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .feedback-section.correct {
+            background: #f0fff4;
+            border-left: 4px solid #38a169;
+        }
+        
+        .feedback-section.incorrect {
+            background: #fff5f5;
+            border-left: 4px solid #e53e3e;
+        }
+        
+        .feedback-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .feedback-icon {
+            margin-right: 8px;
+        }
+        
+        .feedback-section.correct .feedback-title {
+            color: #38a169;
+        }
+        
+        .feedback-section.incorrect .feedback-title {
+            color: #e53e3e;
+        }
+        
+        .feedback-content {
+            color: #4a5568;
+        }
+        
+        .exam-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .control-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+        
+        .btn-prev {
+            background: #edf2f7;
+            color: #4a5568;
+        }
+        
+        .btn-prev:hover {
+            background: #e2e8f0;
+        }
+        
+        .btn-check {
+            background: #3182ce;
+            color: white;
+        }
+        
+        .btn-check:hover {
+            background: #2c5282;
+        }
+        
+        .btn-next {
+            background: #3182ce;
+            color: white;
+        }
+        
+        .btn-next:hover {
+            background: #2c5282;
+        }
+        
+        .btn-finish {
+            background: #38a169;
+            color: white;
+        }
+        
+        .btn-finish:hover {
+            background: #2f855a;
+        }
+        
+        .btn-icon {
+            margin-right: 8px;
+        }
+        
+        .control-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .results-container {
+            display: none;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .results-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #2d3748;
+        }
+        
+        .results-score {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin: 20px 0;
+            color: #3182ce;
+        }
+        
+        .results-details {
+            max-width: 600px;
+            margin: 0 auto 30px;
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: left;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+        
+        .detail-value {
+            color: #2d3748;
+        }
+        
+        .results-message {
+            font-size: 1.1rem;
+            margin: 30px 0;
+            color: #4a5568;
+            line-height: 1.8;
+        }
+        
+        .btn-restart {
+            background: #3182ce;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-restart:hover {
+            background: #2c5282;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+        
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #cbd5e0;
+        }
+        
+        .empty-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #4a5568;
+        }
+        
+        .empty-description {
+            max-width: 500px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .exam-footer {
+            background: #edf2f7;
+            padding: 15px 30px;
+            text-align: center;
+            color: #718096;
+            font-size: 0.9rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        @media (max-width: 768px) {
+            .exam-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .exam-meta {
+                align-items: flex-start;
+                margin-top: 15px;
+            }
+            
+            .exam-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .question-text {
+                padding-left: 0;
+            }
+            
+            .options-container {
+                margin-left: 0;
+            }
+            
+            .feedback-section {
+                margin-left: 0;
+            }
+            
+            .exam-controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .control-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="exam-container">
+        <div class="exam-header">
+            <div>
+                <div class="exam-title" id="exam-title">Evaluación Académica</div>
+                <div class="exam-subtitle" id="exam-subtitle">Sistema de Evaluación</div>
+            </div>
+            <div class="exam-meta">
+                <div class="exam-timer" id="exam-timer" style="display: none;">
+                    <span class="timer-icon"><i class="far fa-clock"></i></span>
+                    <span id="timer-display">00:00</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="exam-info">
+            <div class="info-item">
+                <span class="info-icon"><i class="fas fa-list-ol"></i></span>
+                <span>Pregunta <span id="current-question">0</span> de <span id="total-questions">0</span></span>
+            </div>
+            <div class="info-item">
+                <span class="info-icon"><i class="fas fa-tasks"></i></span>
+                <span>Respondidas: <span id="answered-count">0</span></span>
+            </div>
+            <div class="info-item">
+                <span class="info-icon"><i class="fas fa-percentage"></i></span>
+                <span>Progreso: <span id="progress-percent">0%</span></span>
+            </div>
+        </div>
+        
+        <div class="exam-content" id="exam-content">
+            <div class="empty-state" id="empty-state">
+                <div class="empty-icon"><i class="fas fa-clipboard-list"></i></div>
+                <div class="empty-title">No hay preguntas disponibles</div>
+                <div class="empty-description">
+                    Por favor, cargue un JSON con preguntas usando la función Poblar().
+                </div>
+            </div>
+        </div>
+        
+        <div class="results-container" id="results-container">
+            <div class="results-title">Resultados de la Evaluación</div>
+            <div class="results-score" id="results-score">0/0</div>
+            
+            <div class="results-details">
+                <div class="detail-row">
+                    <div class="detail-label">Preguntas totales:</div>
+                    <div class="detail-value" id="detail-total">0</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Respuestas correctas:</div>
+                    <div class="detail-value" id="detail-correct">0</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Respuestas incorrectas:</div>
+                    <div class="detail-value" id="detail-incorrect">0</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Porcentaje de aciertos:</div>
+                    <div class="detail-value" id="detail-percentage">0%</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Tiempo empleado:</div>
+                    <div class="detail-value" id="detail-time">--:--</div>
+                </div>
+            </div>
+            
+            <div class="results-message" id="results-message"></div>
+            <button class="btn-restart" id="btn-restart">Reiniciar Evaluación</button>
+        </div>
+        
+        <div class="exam-footer">
+            <div>© 2023 Sistema de Evaluación Académica - Todos los derechos reservados</div>
+        </div>
+    </div>
+
+    <script>
+        // Variables del cuestionario
+        let questions = [];
+        let currentQuestion = 0;
+        let score = 0;
+        let selectedOption = null;
+        let answered = false;
+        let answeredQuestions = new Set();
+        let startTime = null;
+        let endTime = null;
+        let timerInterval = null;
+        let examDuration = null; // en segundos
+
+        // Elementos del DOM
+        const examTitle = document.getElementById('exam-title');
+        const examSubtitle = document.getElementById('exam-subtitle');
+        const examContent = document.getElementById('exam-content');
+        const emptyState = document.getElementById('empty-state');
+        const resultsContainer = document.getElementById('results-container');
+        const examTimer = document.getElementById('exam-timer');
+        const timerDisplay = document.getElementById('timer-display');
+        const currentQuestionEl = document.getElementById('current-question');
+        const totalQuestionsEl = document.getElementById('total-questions');
+        const answeredCountEl = document.getElementById('answered-count');
+        const progressPercentEl = document.getElementById('progress-percent');
+        const resultsScore = document.getElementById('results-score');
+        const resultsMessage = document.getElementById('results-message');
+        const btnRestart = document.getElementById('btn-restart');
+        
+        // Elementos de detalles de resultados
+        const detailTotal = document.getElementById('detail-total');
+        const detailCorrect = document.getElementById('detail-correct');
+        const detailIncorrect = document.getElementById('detail-incorrect');
+        const detailPercentage = document.getElementById('detail-percentage');
+        const detailTime = document.getElementById('detail-time');
+
+        // Función para poblar el cuestionario con datos JSON
+        function Poblar(datosJSON, titulo = "Evaluación Académica", subtitulo = "Sistema de Evaluación", duracion = null) {
+            try {
+                // Verificar si los datos son un string JSON o un objeto
+                if (typeof datosJSON === 'string') {
+                    questions = JSON.parse(datosJSON);
+                } else {
+                    questions = datosJSON;
+                }
+                
+                // Validar estructura básica del JSON
+                if (!Array.isArray(questions) || questions.length === 0) {
+                    throw new Error("El JSON debe contener un array de preguntas");
+                }
+                
+                // Validar cada pregunta
+                questions.forEach((q, index) => {
+                    if (!q.question || !q.options || !q.correctAnswer) {
+                        throw new Error(`La pregunta ${index + 1} no tiene la estructura correcta`);
+                    }
+                });
+                
+                // Actualizar título y subtítulo
+                examTitle.textContent = titulo;
+                examSubtitle.textContent = subtitulo;
+                
+                // Establecer duración del examen si se proporciona
+                examDuration = duracion;
+                
+                // Inicializar el cuestionario
+                initQuiz();
+                
+                return true;
+            } catch (error) {
+                console.error("Error al poblar el cuestionario:", error.message);
+                mostrarError(error.message);
+                return false;
+            }
+        }
+
+        // Función para mostrar errores
+        function mostrarError(mensaje) {
+            emptyState.innerHTML = `
+                <div class="empty-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="empty-title">Error</div>
+                <div class="empty-description">
+                    ${mensaje}<br>
+                    Por favor, verifique el formato del JSON y vuelva a intentarlo.
+                </div>
+            `;
+            emptyState.style.display = 'block';
+            examContent.style.display = 'none';
+            resultsContainer.style.display = 'none';
+        }
+
+        // Inicializar cuestionario
+        function initQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            selectedOption = null;
+            answered = false;
+            answeredQuestions.clear();
+            startTime = new Date();
+            endTime = null;
+            
+            if (questions.length === 0) {
+                emptyState.style.display = 'block';
+                examContent.style.display = 'none';
+                resultsContainer.style.display = 'none';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            examContent.style.display = 'block';
+            resultsContainer.style.display = 'none';
+            
+            // Actualizar contador de preguntas
+            totalQuestionsEl.textContent = questions.length;
+            updateProgress();
+            
+            // Iniciar temporizador si se proporcionó una duración
+            if (examDuration) {
+                examTimer.style.display = 'flex';
+                startTimer(examDuration);
+            } else {
+                examTimer.style.display = 'none';
+            }
+            
+            showQuestion();
+        }
+
+        // Iniciar temporizador
+        function startTimer(duration) {
+            let timeRemaining = duration;
+            
+            // Actualizar display inicial
+            updateTimerDisplay(timeRemaining);
+            
+            // Limpiar intervalo existente
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            // Crear nuevo intervalo
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay(timeRemaining);
+                
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    // Tiempo agotado, finalizar examen
+                    finishExam();
+                }
+            }, 1000);
+        }
+
+        // Actualizar display del temporizador
+        function updateTimerDisplay(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            
+            // Cambiar color si queda poco tiempo
+            if (seconds <= 60) {
+                timerDisplay.style.color = '#e53e3e';
+            } else if (seconds <= 300) {
+                timerDisplay.style.color = '#dd6b20';
+            } else {
+                timerDisplay.style.color = '';
+            }
+        }
+
+        // Mostrar pregunta actual
+        function showQuestion() {
+            const question = questions[currentQuestion];
+            
+            // Limpiar contenido anterior
+            examContent.innerHTML = '';
+            
+            // Crear sección de pregunta
+            const questionSection = document.createElement('div');
+            questionSection.className = 'question-section';
+            
+            // Encabezado de pregunta
+            const questionHeader = document.createElement('div');
+            questionHeader.className = 'question-header';
+            
+            const questionNumber = document.createElement('div');
+            questionNumber.className = 'question-number';
+            questionNumber.textContent = currentQuestion + 1;
+            
+            const questionCategory = document.createElement('div');
+            questionCategory.className = 'question-category';
+            questionCategory.textContent = question.category || 'General';
+            
+            questionHeader.appendChild(questionNumber);
+            questionHeader.appendChild(questionCategory);
+            
+            // Texto de la pregunta
+            const questionText = document.createElement('div');
+            questionText.className = 'question-text';
+            questionText.textContent = question.question;
+            
+            // Contenedor de opciones
+            const optionsContainer = document.createElement('div');
+            optionsContainer.className = 'options-container';
+            
+            // Crear opciones
+            question.options.forEach((option, index) => {
+                const optionItem = document.createElement('div');
+                optionItem.className = 'option-item';
+                optionItem.dataset.index = index;
+                
+                const optionMarker = document.createElement('div');
+                optionMarker.className = 'option-marker';
+                optionMarker.textContent = String.fromCharCode(65 + index); // A, B, C, D...
+                
+                const optionText = document.createElement('div');
+                optionText.className = 'option-text';
+                optionText.textContent = option;
+                
+                optionItem.appendChild(optionMarker);
+                optionItem.appendChild(optionText);
+                optionItem.addEventListener('click', selectOption);
+                
+                optionsContainer.appendChild(optionItem);
+            });
+            
+            // Sección de retroalimentación
+            const feedbackSection = document.createElement('div');
+            feedbackSection.className = 'feedback-section';
+            feedbackSection.id = 'feedback-section';
+            
+            const feedbackTitle = document.createElement('div');
+            feedbackTitle.className = 'feedback-title';
+            
+            const feedbackContent = document.createElement('div');
+            feedbackContent.className = 'feedback-content';
+            
+            feedbackSection.appendChild(feedbackTitle);
+            feedbackSection.appendChild(feedbackContent);
+            
+            // Controles
+            const examControls = document.createElement('div');
+            examControls.className = 'exam-controls';
+            
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'control-btn btn-prev';
+            prevBtn.id = 'prev-btn';
+            prevBtn.innerHTML = '<span class="btn-icon"><i class="fas fa-arrow-left"></i></span> Anterior';
+            prevBtn.disabled = currentQuestion === 0;
+            prevBtn.addEventListener('click', prevQuestion);
+            
+            const checkBtn = document.createElement('button');
+            checkBtn.className = 'control-btn btn-check';
+            checkBtn.id = 'check-btn';
+            checkBtn.innerHTML = '<span class="btn-icon"><i class="fas fa-check"></i></span> Verificar';
+            checkBtn.disabled = true;
+            checkBtn.addEventListener('click', checkAnswer);
+            
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'control-btn btn-next';
+            nextBtn.id = 'next-btn';
+            nextBtn.innerHTML = 'Siguiente <span class="btn-icon"><i class="fas fa-arrow-right"></i></span>';
+            nextBtn.disabled = true;
+            nextBtn.addEventListener('click', nextQuestion);
+            
+            examControls.appendChild(prevBtn);
+            examControls.appendChild(checkBtn);
+            examControls.appendChild(nextBtn);
+            
+            // Ensamblar
+            questionSection.appendChild(questionHeader);
+            questionSection.appendChild(questionText);
+            questionSection.appendChild(optionsContainer);
+            questionSection.appendChild(feedbackSection);
+            
+            examContent.appendChild(questionSection);
+            examContent.appendChild(examControls);
+            
+            // Resetear estado
+            selectedOption = null;
+            answered = answeredQuestions.has(currentQuestion);
+            feedbackSection.style.display = 'none';
+            checkBtn.disabled = !answered && selectedOption === null;
+            updateButtons();
+        }
+
+        // Seleccionar opción
+        function selectOption(e) {
+            if (answered) return;
+            
+            const optionItem = e.currentTarget;
+            const index = optionItem.dataset.index;
+            
+            // Quitar selección anterior
+            document.querySelectorAll('.option-item').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Marcar nueva selección
+            optionItem.classList.add('selected');
+            selectedOption = index;
+            document.getElementById('check-btn').disabled = false;
+        }
+
+        // Verificar respuesta
+        function checkAnswer() {
+            if (selectedOption === null || answered) return;
+            
+            answered = true;
+            answeredQuestions.add(currentQuestion);
+            const question = questions[currentQuestion];
+            const isCorrect = String.fromCharCode(65 + parseInt(selectedOption)) === question.correctAnswer;
+            
+            // Actualizar puntuación
+            if (isCorrect) {
+                score++;
+            }
+            
+            // Actualizar contador de preguntas respondidas
+            updateProgress();
+            
+            // Mostrar retroalimentación
+            const feedbackSection = document.getElementById('feedback-section');
+            const feedbackTitle = feedbackSection.querySelector('.feedback-title');
+            const feedbackContent = feedbackSection.querySelector('.feedback-content');
+            
+            if (isCorrect) {
+                feedbackSection.className = 'feedback-section correct';
+                feedbackTitle.innerHTML = '<span class="feedback-icon"><i class="fas fa-check-circle"></i></span> Respuesta Correcta';
+            } else {
+                feedbackSection.className = 'feedback-section incorrect';
+                feedbackTitle.innerHTML = '<span class="feedback-icon"><i class="fas fa-times-circle"></i></span> Respuesta Incorrecta';
+            }
+            
+            feedbackContent.textContent = question.explanation || '';
+            feedbackSection.style.display = 'block';
+            
+            // Marcar opciones
+            document.querySelectorAll('.option-item').forEach((opt, index) => {
+                const optionLetter = String.fromCharCode(65 + index);
+                if (optionLetter === question.correctAnswer) {
+                    opt.classList.add('correct');
+                } else if (index == selectedOption && !isCorrect) {
+                    opt.classList.add('incorrect');
+                }
+            });
+            
+            // Actualizar botones
+            document.getElementById('check-btn').disabled = true;
+            updateButtons();
+        }
+
+        // Navegación entre preguntas
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                showQuestion();
+                updateProgress();
+            } else {
+                finishExam();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion();
+                updateProgress();
+            }
+        }
+
+        // Actualizar botones de navegación
+        function updateButtons() {
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            
+            prevBtn.disabled = currentQuestion === 0;
+            
+            if (currentQuestion === questions.length - 1) {
+                nextBtn.innerHTML = '<span class="btn-icon"><i class="fas fa-flag-checkered"></i></span> Finalizar';
+                nextBtn.className = 'control-btn btn-finish';
+            } else {
+                nextBtn.innerHTML = 'Siguiente <span class="btn-icon"><i class="fas fa-arrow-right"></i></span>';
+                nextBtn.className = 'control-btn btn-next';
+            }
+            
+            nextBtn.disabled = !answered;
+        }
+
+        // Actualizar progreso
+        function updateProgress() {
+            currentQuestionEl.textContent = currentQuestion + 1;
+            answeredCountEl.textContent = answeredQuestions.size;
+            
+            const progress = Math.round((answeredQuestions.size / questions.length) * 100);
+            progressPercentEl.textContent = `${progress}%`;
+        }
+
+        // Finalizar examen
+        function finishExam() {
+            // Detener temporizador
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            endTime = new Date();
+            
+            // Calcular tiempo empleado
+            const timeDiff = endTime - startTime;
+            const seconds = Math.floor(timeDiff / 1000);
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            const timeString = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            
+            // Mostrar resultados
+            examContent.style.display = 'none';
+            resultsContainer.style.display = 'block';
+            
+            const percentage = Math.round((score / questions.length) * 100);
+            resultsScore.textContent = `${score}/${questions.length}`;
+            
+            // Actualizar detalles
+            detailTotal.textContent = questions.length;
+            detailCorrect.textContent = score;
+            detailIncorrect.textContent = questions.length - score;
+            detailPercentage.textContent = `${percentage}%`;
+            detailTime.textContent = timeString;
+            
+            // Mensaje según rendimiento
+            let message = '';
+            if (percentage >= 90) {
+                message = 'Excelente desempeño. Has demostrado un conocimiento sólido y completo del tema. ';
+                message += 'Tu dedicación y esfuerzo se reflejan en estos resultados. ¡Felicidades!';
+            } else if (percentage >= 75) {
+                message = 'Buen trabajo. Has respondido correctamente a la mayoría de las preguntas. ';
+                message += 'Revisa los conceptos donde tuviste dificultades para consolidar tu aprendizaje.';
+            } else if (percentage >= 60) {
+                message = 'Resultado aprobatorio. Aunque has superado la evaluación, ';
+                message += 'te recomendamos repasar los temas donde cometiste errores para fortalecer tu conocimiento.';
+            } else {
+                message = 'Te recomendamos dedicar más tiempo al estudio de estos conceptos. ';
+                message += 'La práctica constante y la revisión de los materiales te ayudarán a mejorar en futuras evaluaciones.';
+            }
+            
+            resultsMessage.textContent = message;
+        }
+
+        // Event Listeners
+        btnRestart.addEventListener('click', initQuiz);
+
+        // Exponer la función Poblar globalmente
+        window.Poblar = Poblar;
+        
+        // Inicializar con mensaje de no preguntas
+        emptyState.style.display = 'block';
+        examContent.style.display = 'none';
+    </script>
+</body>
+</html>

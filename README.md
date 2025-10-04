@@ -1,68 +1,35 @@
-# Extracción de texto desde archivos en Google Cloud Storage
-
-## Función extractTextFromGCSFile
-
-Esta función Cloud extrae texto de archivos subidos a un bucket de Google Cloud Storage. Soporta .txt, .pdf, .doc, .docx, .png, .jpg.
-
-### Modos de uso
-
-#### 1. Trigger automático (recomendado)
-Se activa automáticamente cuando se sube un archivo al bucket configurado. Ideal para procesamiento en background.
-
-**Configuración:**
-- Despliega la función con trigger de almacenamiento (Storage Trigger) en el bucket deseado.
-- Asegúrate de que la cuenta de servicio tenga permisos de lectura en el bucket y acceso a Cloud Vision API.
-
-#### 2. Endpoint HTTP manual
-Puedes invocar la función manualmente enviando una petición POST a `extractTextFromGCSFileHttp`:
-
-**URL:**
-```
-https://REGION-PROJECT.cloudfunctions.net/extractTextFromGCSFileHttp
-```
-
-**Body (JSON):**
-```
-{
-   "bucket": "nombre-del-bucket",
-   "fileName": "ruta/del/archivo.ext"
-}
-```
-
-**Respuesta:**
-```
-{
-   "success": true,
-   "text": "Texto extraído..."
-}
-```
-
-### Dependencias necesarias
-- @google-cloud/storage
-- @google-cloud/vision
-- pdf-parse
-- mammoth
-
-Instala con:
-```
-npm install @google-cloud/storage @google-cloud/vision pdf-parse mammoth
-```
-
-### Permisos y APIs
-- Habilita Cloud Storage y Cloud Vision API en tu proyecto de Google Cloud.
-- La cuenta de servicio debe tener permisos de lectura en el bucket y acceso a Vision API.
-
-### Notas
-- Para .doc/.docx se extrae texto plano (sin formato).
-- Para imágenes, se realiza OCR con Vision API.
-- El trigger automático es ideal para flujos serverless; el endpoint HTTP es útil para pruebas o integración directa con frontend.
 # IntelliForms
 
-Sistema para la carga y procesamiento de archivos usando Google Cloud Functions y Google Cloud Storage.
+IntelliForms es un sistema inteligente que genera formularios dinámicos a partir del contenido de documentos subidos. Utiliza Google Cloud Functions para el backend, Google Cloud Storage para el almacenamiento de archivos y la API de Gemini para el análisis de texto y la generación de formularios.
 
 ## Estructura
-- **backend/**: Funciones serverless (Node.js) para generación de URLs firmadas y notificación post-upload.
-- **frontend/**: React app con componente FileUploader y servicios para interactuar con el backend.
+- **backend/funtions**: Contiene todas las Cloud Functions (Node.js) que componen el backend.
+- **frontend**: Aplicación creada con React que constituye la interfaz de usuario.
+
+## Arquitectura y Flujos de Trabajo
+
+El sistema soporta dos flujos principales para la generación de formularios:
+
+### 1. Flujo Síncrono (Directo)
+Ideal para pruebas rápidas y archivos pequeños.
+1.  El frontend (`FileGenerator.jsx`) envía el archivo y la plantilla directamente al endpoint `generarFormularioHttp`.
+2.  Esta función extrae el texto del archivo en memoria, llama a la API de Gemini y devuelve la estructura del formulario en la misma respuesta HTTP.
+
+### 2. Flujo Asíncrono (Escalable)
+Recomendado para producción y archivos grandes, ya que es más robusto y no bloquea al usuario.
+1.  El frontend solicita una **URL firmada** al endpoint `generateUploadUrl`.
+2.  Con la URL obtenida, el frontend sube el archivo directamente a **Google Cloud Storage**.
+3.  Una vez subido, el frontend notifica al endpoint `notifyFileUploaded`.
+4.  `notifyFileUploaded` publica un mensaje en un tema de **Pub/Sub** con los detalles del archivo.
+5.  La función `processFile` se activa al recibir el mensaje de Pub/Sub, orquestando la extracción de texto (`extractTextFromGCSFile`) y la llamada a Gemini (`geminiService`).
+6.  *(Futuro)* El resultado se guarda en una base de datos (ej. Firestore) para que el frontend pueda consultarlo.
+
+## Endpoints Principales del Backend
+
+- `generarFormularioHttp`: (POST) Procesa un archivo enviado como `multipart/form-data` y devuelve un formulario.
+- `generateUploadUrl`: (POST) Genera una URL segura para subir un archivo a GCS.
+- `notifyFileUploaded`: (POST) Notifica al sistema que un archivo ha sido subido e inicia el procesamiento asíncrono.
+- `processFile`: (Pub/Sub Trigger) Procesa el archivo en segundo plano.
 
 ## Despliegue Backend
 1. Instala dependencias:
@@ -70,10 +37,10 @@ Sistema para la carga y procesamiento de archivos usando Google Cloud Functions 
    cd backend/funtions
    npm install
    ```
-2. Configura variables de entorno (ver `.env.example`).
+2. Configura tus variables de entorno en un archivo `.env.yaml` (o similar para Google Cloud).
 3. Despliega funciones:
    ```sh
-   npm run deploy
+   gcloud functions deploy NOMBREDELAFUNCION --trigger...
    ```
 
 ## Despliegue Frontend
@@ -82,10 +49,14 @@ Sistema para la carga y procesamiento de archivos usando Google Cloud Functions 
    cd frontend
    npm install
    ```
-2. Configura variables de entorno (ver `.env.example`).
-3. Inicia la app:
+2. Configura las variables de entorno en un archivo `.env` (ver `.env.example`).
+3. Inicia la app en modo desarrollo:
    ```sh
    npm start
+   ```
+4. Para producción, genera los archivos estáticos:
+   ```sh
+   npm run build
    ```
 
 ## Pruebas
@@ -93,4 +64,4 @@ Sistema para la carga y procesamiento de archivos usando Google Cloud Functions 
 - Frontend: `npm test` en `frontend`.
 
 ## Variables de entorno
-Ver `.env.example` para ambos entornos.
+Revisa los archivos `.env.example` en las carpetas `backend/funtions` y `frontend` para ver las variables requeridas.

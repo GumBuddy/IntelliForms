@@ -1,19 +1,6 @@
 /**
  * Cloud Function para extraer texto de archivos almacenados en Google Cloud Storage.
  * Soporta múltiples formatos: .txt, .pdf, .doc, .docx, .png, .jpg.
- * 
- * Funcionalidades:
- * - Procesa archivos subidos a un bucket de Cloud Storage
- * - Extrae texto según el tipo de archivo:
- *     * .txt: Lectura directa
- *     * .pdf: Extracción con pdf-parse
- *     * .doc/.docx: Extracción con mammoth
- *     * Imágenes: OCR con Google Cloud Vision
- * - Devuelve texto limpio y estructurado listo para enviar a Gemini API
- * 
- * @param {object} event - Evento de Cloud Storage con información del archivo
- * @param {object} context - Contexto de la ejecución
- * @returns {Promise<string>} Texto extraído del archivo
  */
 
 const { Storage } = require('@google-cloud/storage');
@@ -25,12 +12,7 @@ const mammoth = require('mammoth');
 const storage = new Storage();
 const visionClient = new vision.ImageAnnotatorClient();
 
-/**
- * Función principal de la Cloud Function
- * @param {object} event - Evento de Cloud Storage
- * @param {object} context - Contexto de ejecución
- */
-exports.extractTextFromGCSFile = async (event, context) => {
+const extractTextFromGCSFile = async (event, context) => {
   try {
     // Extraer información del archivo del evento
     const bucketName = event.bucket;
@@ -162,3 +144,14 @@ async function extractTextFromImage(fileBuffer) {
   // El primer elemento contiene el texto completo detectado
   return detections[0].description;
 }
+
+// Exportar funciones auxiliares para reutilizarlas
+module.exports = {
+  extractTextFromGCSFile,
+  helpers: {
+  extractTextFromTxt,
+  extractTextFromPdf,
+  extractTextFromDocx,
+  extractTextFromImage,
+  }
+};

@@ -8,6 +8,11 @@
  */
 
 // Aquí puedes importar otras dependencias si es necesario
+const { PubSub } = require('@google-cloud/pubsub');
+const pubsub = new PubSub();
+
+// Nombre del tema de Pub/Sub que activará la generación del formulario
+const TOPIC_NAME = process.env.FORM_GENERATION_TOPIC || 'projects/intelliforms-424618/topics/form-generation-topic';
 
 /**
  * Función principal de Google Cloud Functions para manejar la notificación post-upload
@@ -39,19 +44,32 @@ exports.notifyFileUploaded = async (request, response) => {
       });
       return;
     }
-    const { fileName } = request.body;
-    if (!fileName) {
+    const { fileName, template } = request.body;
+    if (!fileName || !template) {
       response.status(400).json({
         success: false,
-        error: 'Falta el parámetro fileName.'
+        error: 'Faltan los parámetros fileName y template.'
       });
       return;
     }
-    // Aquí puedes agregar lógica de procesamiento del archivo
-    // Por ejemplo: analizar, validar, mover, etc.
+
+    // Prepara los datos para enviar al siguiente paso
+    const messageData = {
+      fileName,
+      template,
+      bucket: process.env.BUCKET_NAME || 'intelliforms-uploads'
+    };
+
+    // Publica un mensaje en el tema de Pub/Sub para iniciar la extracción y generación
+    const dataBuffer = Buffer.from(JSON.stringify(messageData));
+    const messageId = await pubsub.topic(TOPIC_NAME).publishMessage({ data: dataBuffer });
+
+    console.log(`Mensaje ${messageId} publicado en ${TOPIC_NAME} para el archivo ${fileName}.`);
+
     response.status(200).json({
       success: true,
-      message: `Archivo ${fileName} notificado y procesado correctamente.`
+      message: `Archivo ${fileName} notificado. El procesamiento ha comenzado.`,
+      messageId: messageId
     });
   } catch (error) {
     console.error('Error en notifyFileUploaded:', error);

@@ -1,0 +1,80 @@
+.export-button {
+    width: 100%;
+    padding: 12px 25px;
+    margin-top: 1.5rem;
+    font-size: 1em;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* --- Mensajes de Estado --- */
+.mensaje {
+    padding: 12px;
+}
+.mensaje.success { background-color: #eafaf1; color: #27ae60; }
+.mensaje.error { background-color: #fbeae9; color: var(--error-color); }
+
+/* --- Barra de Progreso --- */
+.progress-bar-container {
+    width: 100%;
+    background-color: var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+.progress-bar {
+    height: 10px;
+    background-color: var(--primary-color);
+    transition: width 0.3s ease-in-out;
+}
+
+/* --- Formulario Generado --- */
+#formulario-generado {
+    margin-top: 2rem;
+    padding-top: 2rem;
+}
+
+.form-title {
+    margin-bottom: 1.5rem;
+    font-size: 1.5em;
+    color: var(--primary-dark);
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1em;
+    background-color: white; /* Para selects en modo oscuro */
+}
+
+/* Estilos para grupos de radio y checkbox */
+.options-group {
+    margin-top: 8px;
+}
+
+.option-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.option-item input[type="radio"],
+.option-item input[type="checkbox"] {
+    margin-right: 10px;
+    width: auto; /* Anula el width: 100% */
+}
+
+.option-item label {
+    font-weight: 400; /* Las etiquetas de las opciones no necesitan ser negrita */
+}
+
+/* --- Animaciones y Utilidades --- */

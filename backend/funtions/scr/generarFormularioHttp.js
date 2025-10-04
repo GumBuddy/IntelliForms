@@ -1,11 +1,8 @@
-// Servicio para llamar a Gemini
-const { llamarGemini } = require('./geminiService');
 /**
  * @fileoverview
  * Endpoint HTTP para generación de formularios dinámicos a partir de archivos subidos.
  * - Recibe archivos .txt, .pdf, .png, .jpg, .doc, .docx mediante POST multipart/form-data.
- * - Extrae el texto usando lógica local (buffer).
- * - (Simulado) Llama a Gemini y devuelve JSON de preguntas/campos.
+ * - Extrae el texto usando lógica local (buffer) y llama a Gemini.
  * - Incluye soporte CORS y manejo robusto de errores.
  *
  * Uso con Google Cloud Functions Framework:
@@ -13,36 +10,29 @@ const { llamarGemini } = require('./geminiService');
  */
 
 const Busboy = require('busboy');
-const pdfParse = require('pdf-parse');
-const mammoth = require('mammoth');
-const vision = require('@google-cloud/vision');
-const visionClient = new vision.ImageAnnotatorClient();
+const { llamarGemini } = require('./geminiService');
+const { helpers: textExtractors } = require('./extractTextFromGCSFile');
 
 /**
  * Extrae texto de un archivo buffer según su tipo.
  * @param {Buffer} buffer - Buffer del archivo
  * @param {string} filename - Nombre del archivo
- * @param {string} mimetype - Tipo MIME
  * @returns {Promise<string>} Texto extraído
  */
-async function extractTextFromBuffer(buffer, filename, mimetype) {
+async function extractTextFromBuffer(buffer, filename) {
   const ext = filename.split('.').pop().toLowerCase();
   switch (ext) {
     case 'txt':
-      return buffer.toString('utf-8');
+      return textExtractors.extractTextFromTxt(buffer);
     case 'pdf':
-      const pdfData = await pdfParse(buffer);
-      return pdfData.text;
+      return textExtractors.extractTextFromPdf(buffer);
     case 'doc':
     case 'docx':
-      const result = await mammoth.extractRawText({ buffer });
-      return result.value;
+      return textExtractors.extractTextFromDocx(buffer);
     case 'png':
     case 'jpg':
     case 'jpeg':
-      const [resultVision] = await visionClient.textDetection({ image: { content: buffer } });
-      const detections = resultVision.textAnnotations;
-      return detections && detections.length > 0 ? detections[0].description : '';
+      return textExtractors.extractTextFromImage(buffer);
     default:
       throw new Error('Tipo de archivo no soportado para extracción de texto');
   }
@@ -68,7 +58,7 @@ exports.generarFormularioHttp = (req, res) => {
     return;
   }
 
-  const busboy = new Busboy({ headers: req.headers, limits: { fileSize: 10 * 1024 * 1024 } });
+  const busboy = Busboy({ headers: req.headers, limits: { fileSize: 10 * 1024 * 1024 } });
   let archivoBuffer = Buffer.alloc(0);
   let archivoNombre = '';
   let archivoMime = '';
@@ -101,7 +91,7 @@ exports.generarFormularioHttp = (req, res) => {
         return;
       }
       // Extraer texto real del archivo
-      const textoExtraido = await extractTextFromBuffer(archivoBuffer, archivoNombre, archivoMime);
+      const textoExtraido = await extractTextFromBuffer(archivoBuffer, archivoNombre);
       // Limitar el texto a 15,000 caracteres
       const textoLimitado = textoExtraido.substring(0, 15000);
       // Llamar a Gemini para generar el formulario
