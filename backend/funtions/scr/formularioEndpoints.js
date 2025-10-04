@@ -25,27 +25,6 @@ const getTemplatesHandler = (req, res) => {
   }
 };
 
-/**
- * Endpoint de simulación para devolver un formulario de ejemplo.
- * GET /generarFormularioSimulado
- * (Lógica de Gemini simulada, debes agregar tu API real)
- */
-const generarFormularioHandler = async (req, res) => {
-  // Como esta es una ruta GET para simulación, no hay req.body.
-  // Devolvemos directamente un formulario de ejemplo.
-  // Simular respuesta de Gemini
-  const formularioData = {
-    titulo: 'Formulario Generado',
-    campos: [
-      { id: 'nombre', etiqueta: 'Nombre', tipo: 'texto', requerido: true },
-      { id: 'email', etiqueta: 'Correo Electrónico', tipo: 'email', requerido: true },
-      { id: 'comentarios', etiqueta: 'Comentarios', tipo: 'textarea', requerido: false }
-    ]
-  };
-  res.status(200).json(formularioData);
-};
-
 module.exports = {
-  getTemplates: getTemplatesHandler,
-  generarFormulario: generarFormularioHandler,
+  getTemplates: getTemplatesHandler
 };

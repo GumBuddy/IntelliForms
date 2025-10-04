@@ -3,6 +3,7 @@
  * @module geminiService
  */
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { app } = require('./scr/api');
 
 let genAI; // Declarar pero no inicializar
 
@@ -74,4 +75,5 @@ async function llamarGemini(texto, plantilla) {
     }
 }
 
+exports.api = app;
 module.exports = { llamarGemini };

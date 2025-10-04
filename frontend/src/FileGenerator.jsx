@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './FileGenerator.css';
-import { get, post } from './Services/api'; // Importar los métodos del servicio centralizado
+import { get, post } from './Services/api'; // Importar 'post' y corregir la ruta
 
 // --- Subcomponente para renderizar el formulario dinámico ---
 const DynamicForm = ({ formData }) => {
@@ -107,20 +107,10 @@ const FileGenerator = () => {
         formData.append('plantilla', selectedTemplate);
 
         try {
-            // Para enviar FormData, no podemos usar nuestro 'post' helper que asume JSON.
-            // Hacemos un fetch directo aquí, pero asegurándonos de que la URL es correcta.
-            const response = await fetch('/api/generarFormularioHttp', {
-                method: 'POST',
-                body: formData,
-                // No establecemos 'Content-Type', el navegador lo hará por nosotros para FormData.
+            // Usar el helper 'post' centralizado, que ya sabe cómo manejar FormData.
+            const data = await post('/generarFormularioHttp', formData, {
                 headers: { 'x-api-key': process.env.REACT_APP_API_KEY || '' }
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || `Error del servidor: ${response.status}`);
-            }
             if (!data.success) {
                 throw new Error(data.error || 'El backend indicó un fallo en la operación.');
             }

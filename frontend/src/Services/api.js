@@ -24,10 +24,11 @@ const apiRequest = async (endpoint, options = {}) => {
     const url = `${API_BASE_URL}${endpoint}`;
     
     // Configurar opciones predeterminadas
+    const isFormData = options.body instanceof FormData;
     const defaultOptions = {
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      headers: isFormData 
+        ? {} // Dejar que el navegador establezca el Content-Type para FormData
+        : { 'Content-Type': 'application/json' }
     };
     
     // Combinar opciones predeterminadas con las proporcionadas
@@ -93,7 +94,8 @@ export const get = (endpoint, params = {}) => {
 export const post = (endpoint, data = {}) => {
   return apiRequest(endpoint, {
     method: 'POST',
-    body: JSON.stringify(data)
+    // Si es FormData, lo pasamos directamente. Si no, lo convertimos a JSON.
+    body: data instanceof FormData ? data : JSON.stringify(data)
   });
 };
 

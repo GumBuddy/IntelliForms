@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { requestUploadUrl, uploadFileToStorage, notifyFileProcessing } from '../../Services/storageService';
 
 /**
@@ -19,6 +19,53 @@ const FileUploader = () => {
   const fileInputRef = useRef(null);
 
   // Configuración de archivos permitidos
+  // Estado para drag & drop visual
+  const [isDragActive, setIsDragActive] = useState(false);
+
+  // useEffect global para prevenir que el navegador abra archivos al soltarlos fuera del área de drop
+  useEffect(() => {
+    const handleWindowDrop = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    };
+    window.addEventListener('dragover', handleWindowDrop);
+    window.addEventListener('drop', handleWindowDrop);
+    return () => {
+      window.removeEventListener('dragover', handleWindowDrop);
+      window.removeEventListener('drop', handleWindowDrop);
+    };
+  }, []);
+  /**
+   * Maneja el evento de arrastrar sobre el área de drop
+   */
+  const handleDragOver = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragActive(true);
+  };
+
+  /**
+   * Maneja el evento de salir del área de drop
+   */
+  const handleDragLeave = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragActive(false);
+  };
+
+  /**
+   * Maneja el evento de soltar archivo en el área de drop
+   */
+  const handleDrop = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragActive(false);
+    if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length > 0) {
+      // Simula el evento de selección de archivo
+      handleFileSelection({ target: { files: event.dataTransfer.files } });
+      event.dataTransfer.clearData();
+    }
+  };
   const ALLOWED_FILE_TYPES = [
     'text/plain', // .txt
     'application/pdf', // .pdf
@@ -40,6 +87,9 @@ const FileUploader = () => {
     
     if (!file) {
       resetUploader();
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
       return;
     }
 
@@ -47,6 +97,9 @@ const FileUploader = () => {
     const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
     if (!ALLOWED_EXTENSIONS.includes(fileExtension)) {
       setErrorMessage(`Extensión no permitida. Solo se aceptan: ${ALLOWED_EXTENSIONS.join(', ')}`);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
       resetUploader();
       return;
     }
@@ -54,6 +107,9 @@ const FileUploader = () => {
     // Validar tipo MIME
     if (!ALLOWED_FILE_TYPES.includes(file.type)) {
       setErrorMessage('Tipo de archivo no permitido. Verifica el formato del archivo.');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
       resetUploader();
       return;
     }
@@ -61,6 +117,9 @@ const FileUploader = () => {
     // Validar tamaño de archivo
     if (file.size > MAX_FILE_SIZE) {
       setErrorMessage(`El archivo excede el tamaño máximo permitido (${formatFileSize(MAX_FILE_SIZE)})`);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
       resetUploader();
       return;
     }
@@ -162,8 +221,17 @@ const FileUploader = () => {
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Selecciona un archivo ({ALLOWED_EXTENSIONS.join(', ')})
         </label>
-        <div className="flex items-center justify-center w-full">
-          <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+        <div
+          className="flex items-center justify-center w-full"
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          <label
+            className={`flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer transition-colors duration-200 ${
+              isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50 hover:bg-gray-100'
+            }`}
+          >
             <div className="flex flex-col items-center justify-center pt-5 pb-6">
               <svg className="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>

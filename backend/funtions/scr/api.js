@@ -18,7 +18,6 @@ const app = express();
 // --- Middlewares ---
 
 // Habilitar CORS para todos los orígenes. En producción, es recomendable
-// restringirlo a tu dominio de frontend.
 app.use(cors({ origin: true }));
 
 // Middleware para parsear cuerpos de solicitud JSON (necesario para generateUploadUrl y notifyFileUploaded)
@@ -50,4 +49,5 @@ app.use((err, req, res, next) => {
 });
 
 // Exportar la aplicación de Express para que sea usada por Cloud Functions
-module.exports = { app };
+const { app } = require('./scr/api');
+exports.api = app;
