@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import './FileGenerator.css'; // Asegúrate de tener un archivo CSS con los estilos necesarios
+import './FileGenerator.css';
 
 // --- Subcomponente para renderizar el formulario dinámico ---
 const DynamicForm = ({ formData }) => {
@@ -7,7 +7,7 @@ const DynamicForm = ({ formData }) => {
 
     return (
         <>
-            <h3>{titulo}</h3>
+            <h3 className="form-title">{titulo}</h3>
             {campos.map((campo) => {
                 const { id, etiqueta, tipo, placeholder, requerido, opciones } = campo;
                 const formGroup = (
@@ -152,58 +152,73 @@ const FileGenerator = () => {
     };
 
     return (
-        <div className="container">
-            <h1>IntelliForms</h1>
-            <p>Sube un documento y selecciona una plantilla para generar un formulario automáticamente.</p>
-
-            {/* --- Zona de Carga de Archivos --- */}
-            <div
-                id="drop-zone"
-                className={isDragOver ? 'dragover' : ''}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-            >
-                <input
-                    type="file"
-                    id="archivo-input"
-                    onChange={(e) => handleFileChange(e.target.files[0])}
-                    hidden
-                />
-                <label htmlFor="archivo-input">
-                    Arrastra y suelta un documento aquí, o <strong>haz clic para seleccionar</strong>.
-                </label>
-            </div>
-
-            {/* --- Selección de Plantilla y Botón de Generación --- */}
-            <div className="controls">
-                <select
-                    id="plantilla-select"
-                    value={selectedTemplate}
-                    onChange={(e) => setSelectedTemplate(e.target.value)}
-                >
-                    <option value="" disabled>-- Selecciona una plantilla --</option>
-                    {templates.map(t => <option key={t.id} value={t.id}>{t.nombre}</option>)}
-                </select>
-                <button
-                    id="generar-btn"
-                    onClick={handleGenerateClick}
-                    disabled={isGenerateButtonDisabled}
-                >
-                    {getButtonContent()}
-                </button>
-            </div>
-
-            {/* --- Mensajes de Estado --- */}
-            {status.message && (
-                <div id="mensaje-estado" className={`mensaje ${status.type}`}>
-                    {status.message}
+        <div className="app-container">
+            <header className="app-header">
+                <div>
+                    <h1 className="app-title">IntelliForms</h1>
+                    <p className="app-subtitle">Generación Automática de Formularios</p>
                 </div>
-            )}
+            </header>
 
-            {/* --- Contenedor del Formulario Generado --- */}
-            <div id="formulario-generado">
-                {generatedForm && <DynamicForm formData={generatedForm} />}
+            <div className="main-content">
+                <div className="card upload-section">
+                    <h2 className="section-title"><span className="step-number">1</span> Sube tu Documento</h2>
+                    <div
+                        className={`drop-zone ${isDragOver ? 'dragover' : ''}`}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        onClick={() => document.getElementById('archivo-input').click()}
+                    >
+                        <input
+                            type="file"
+                            id="archivo-input"
+                            onChange={(e) => handleFileChange(e.target.files[0])}
+                            hidden
+                        />
+                        <div className="drop-icon">📄</div>
+                        <div className="drop-text">Arrastra y suelta un documento aquí</div>
+                        <div className="drop-or">o</div>
+                        <label htmlFor="archivo-input" className="file-input-label">Selecciona un archivo</label>
+                    </div>
+                    <div className="file-types-info">Soportado: .pdf, .docx, .txt, .png, .jpg</div>
+                </div>
+
+                <div className="card generate-section">
+                    <h2 className="section-title"><span className="step-number">2</span> Configura y Genera</h2>
+                    <div className="config-item">
+                        <label htmlFor="plantilla-select" className="config-label">Selecciona una Plantilla</label>
+                        <select
+                            id="plantilla-select"
+                            className="styled-select"
+                            value={selectedTemplate}
+                            onChange={(e) => setSelectedTemplate(e.target.value)}
+                        >
+                            <option value="" disabled>-- Elige un diseño --</option>
+                            {templates.map(t => <option key={t.id} value={t.id}>{t.nombre}</option>)}
+                        </select>
+                    </div>
+                    <button
+                        id="generar-btn"
+                        className="generate-button"
+                        onClick={handleGenerateClick}
+                        disabled={isGenerateButtonDisabled}
+                    >
+                        {getButtonContent()}
+                    </button>
+                </div>
+
+                <div className="card result-section">
+                    <h2 className="section-title"><span className="step-number">3</span> Resultado</h2>
+                    {status.message && (
+                        <div id="mensaje-estado" className={`mensaje ${status.type}`}>
+                            {status.message}
+                        </div>
+                    )}
+                    <div id="formulario-generado">
+                        {generatedForm ? <DynamicForm formData={generatedForm} /> : <div className="placeholder-text">El formulario generado aparecerá aquí.</div>}
+                    </div>
+                </div>
             </div>
         </div>
     );

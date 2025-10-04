@@ -1,80 +1,257 @@
-.export-button {
+/* --- Importación de Fuentes --- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+/* --- Variables Globales y Reseteo --- */
+:root {
+    --primary-color: #3498db;
+    --primary-dark: #2980b9;
+    --secondary-color: #2ecc71;
+    --light-bg: #f4f7f9;
+    --card-bg: #ffffff;
+    --text-dark: #2c3e50;
+    --text-light: #7f8c8d;
+    --border-color: #e1e5e8;
+    --error-color: #e74c3c;
+    --success-color: #2ecc71;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --transition: all 0.3s ease;
+    --border-radius: 12px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--light-bg);
+    color: var(--text-dark);
+    line-height: 1.6;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* --- Contenedor Principal de la App --- */
+.app-container {
     width: 100%;
+    max-width: 1200px;
+}
+
+/* --- Encabezado --- */
+.app-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    padding: 40px 30px;
+    border-radius: var(--border-radius);
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow);
+}
+
+.app-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.app-subtitle {
+    font-size: 1.1em;
+    font-weight: 400;
+    opacity: 0.9;
+}
+
+.header-icon {
+    font-size: 4em;
+    opacity: 0.2;
+}
+
+/* --- Layout Principal y Tarjetas --- */
+.main-content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 30px;
+}
+
+.card {
+    background-color: var(--card-bg);
+    padding: 30px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+    margin-bottom: 25px;
+    font-size: 1.5em;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--primary-dark);
+}
+
+.step-number {
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    font-size: 0.8em;
+    font-weight: 700;
+}
+
+/* --- Sección de Carga de Archivos --- */
+.drop-zone {
+    border: 2px dashed var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.drop-zone.dragover {
+    border-color: var(--primary-color);
+    background-color: #e9f2fc;
+}
+
+.drop-icon { font-size: 3em; color: var(--primary-color); }
+.drop-text { font-weight: 600; margin: 15px 0 5px; }
+.drop-or { color: var(--text-light); margin-bottom: 15px; }
+
+.file-input-label {
+    display: inline-block;
     padding: 12px 25px;
-    margin-top: 1.5rem;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.file-input-label:hover { background-color: var(--primary-dark); }
+.file-types-info { font-size: 0.8em; color: var(--text-light); margin-top: 20px; }
+
+/* --- Sección de Generación --- */
+.config-item { margin-bottom: 20px; }
+.config-label { display: block; margin-bottom: 8px; font-weight: 600; }
+.styled-select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: white;
     font-size: 1em;
+}
+
+.generate-button, .export-button {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.1em;
     font-weight: 600;
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    background-color: var(--primary-color);
+    transition: var(--transition);
+    background-color: var(--secondary-color);
     color: white;
-}
-
-/* --- Mensajes de Estado --- */
-.mensaje {
-    padding: 12px;
-}
-.mensaje.success { background-color: #eafaf1; color: #27ae60; }
-.mensaje.error { background-color: #fbeae9; color: var(--error-color); }
-
-/* --- Barra de Progreso --- */
-.progress-bar-container {
-    width: 100%;
-    background-color: var(--border-color);
-    border-radius: 8px;
-    overflow: hidden;
-    margin-bottom: 1.5rem;
-}
-.progress-bar {
-    height: 10px;
-    background-color: var(--primary-color);
-    transition: width 0.3s ease-in-out;
-}
-
-/* --- Formulario Generado --- */
-#formulario-generado {
-    margin-top: 2rem;
-    padding-top: 2rem;
-}
-
-.form-title {
-    margin-bottom: 1.5rem;
-    font-size: 1.5em;
-    color: var(--primary-dark);
-}
-
-.form-group input,
-.form-group textarea,
-.form-group select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-family: 'Poppins', sans-serif;
-    font-size: 1em;
-    background-color: white; /* Para selects en modo oscuro */
-}
-
-/* Estilos para grupos de radio y checkbox */
-.options-group {
-    margin-top: 8px;
-}
-
-.option-item {
     display: flex;
     align-items: center;
-    margin-bottom: 8px;
+    justify-content: center;
+    gap: 10px;
+}
+.generate-button:hover:not(:disabled) { background-color: #27ae60; }
+.generate-button:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
 }
 
-.option-item input[type="radio"],
-.option-item input[type="checkbox"] {
-    margin-right: 10px;
-    width: auto; /* Anula el width: 100% */
+.export-button {
+    background-color: var(--primary-color);
+    margin-top: 20px;
+}
+.export-button:hover { background-color: var(--primary-dark); }
+
+
+/* --- Mensajes de Estado --- */
+#mensaje-estado {
+    padding: 12px;
+    margin-top: 20px;
+    border-radius: 8px;
+    text-align: center;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+#mensaje-estado.info { background-color: #eaf5fc; color: var(--primary-dark); }
+#mensaje-estado.success { background-color: #eafaf1; color: #27ae60; }
+#mensaje-estado.error { background-color: #fbeae9; color: var(--error-color); }
+
+/* --- Sección de Resultado --- */
+#formulario-generado .placeholder-text {
+    color: var(--text-light);
+    text-align: center;
+    padding: 40px 0;
+}
+/* Estilos básicos para el formulario generado */
+#formulario-generado .form-group {
+    margin-bottom: 1.5rem;
+}
+#formulario-generado label { font-weight: 600; display: block; margin-bottom: 8px; }
+#formulario-generado .required { color: var(--error-color); }
+#formulario-generado input, #formulario-generado textarea, #formulario-generado select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
 }
 
-.option-item label {
-    font-weight: 400; /* Las etiquetas de las opciones no necesitan ser negrita */
+/* --- Animaciones --- */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.check {
+    font-size: 1.2em;
 }
 
-/* --- Animaciones y Utilidades --- */
+/* --- Diseño Responsivo --- */
+@media (min-width: 992px) {
+    .main-content {
+        grid-template-columns: 400px 1fr;
+        grid-template-rows: auto 1fr;
+        grid-template-areas:
+            "upload generate"
+            "upload result";
+    }
+    .upload-section { grid-area: upload; }
+    .generate-section { grid-area: generate; }
+    .result-section { grid-area: result; }
+}
+
+@media (max-width: 768px) {
+    .app-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+    .card { padding: 20px; }
+}
