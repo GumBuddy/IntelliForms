@@ -10,23 +10,24 @@
 // Aquí puedes importar otras dependencias si es necesario
 const { PubSub } = require('@google-cloud/pubsub');
 const pubsub = new PubSub();
+const { isAuthorized } = require('./auth');
 
-// Nombre del tema de Pub/Sub que activará la generación del formulario
-const TOPIC_NAME = process.env.FORM_GENERATION_TOPIC || 'projects/intelliforms-424618/topics/form-generation-topic';
+// Nombres de recursos obtenidos desde las variables de entorno para mayor portabilidad.
+const TOPIC_NAME = process.env.PUBSUB_TOPIC_NAME;
+const BUCKET_NAME = process.env.GCS_BUCKET_NAME;
 
+/**
+ * Valida que las variables de entorno necesarias estén configuradas.
+ */
+if (!TOPIC_NAME || !BUCKET_NAME) {
+  console.error('Error crítico: Las variables de entorno PUBSUB_TOPIC_NAME y GCS_BUCKET_NAME deben estar definidas.');
+}
 /**
  * Función principal de Google Cloud Functions para manejar la notificación post-upload
  *
  * @param {Object} request - Objeto de solicitud HTTP
  * @param {Object} response - Objeto de respuesta HTTP
  */
-// --- Autenticación por API Key ---
-function isAuthorized(request) {
-  const apiKey = process.env.API_KEY;
-  const clientKey = request.get('x-api-key') || request.headers['x-api-key'];
-  return apiKey && clientKey && apiKey === clientKey;
-}
-
 exports.notifyFileUploaded = async (request, response) => {
   try {
     // Autenticación por API Key
@@ -57,7 +58,7 @@ exports.notifyFileUploaded = async (request, response) => {
     const messageData = {
       fileName,
       template,
-      bucket: process.env.BUCKET_NAME || 'intelliforms-uploads'
+      bucket: BUCKET_NAME
     };
 
     // Publica un mensaje en el tema de Pub/Sub para iniciar la extracción y generación

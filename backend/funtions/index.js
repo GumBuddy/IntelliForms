@@ -26,8 +26,8 @@ exports.notifyFileUploaded = notifyFileUploaded;
 /** Función que se activa por Pub/Sub para procesar el archivo en segundo plano. */
 exports.processFile = processFile;
 
-/** Función diseñada para activarse por un GCS Storage Trigger y extraer texto. */
-exports.extractTextFromGCSFileTrigger = extractTextFromGCSFile;
+/** Función de utilidad para extraer texto. Puede ser llamada por otras funciones o desplegada por separado. */
+exports.extractTextFromGCSFile = extractTextFromGCSFile;
 
 // --- Endpoints Alternativos y de Utilidad ---
 

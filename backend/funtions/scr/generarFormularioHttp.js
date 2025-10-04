@@ -12,6 +12,8 @@
 const Busboy = require('busboy');
 const { llamarGemini } = require('./geminiService');
 const { helpers: textExtractors } = require('./extractTextFromGCSFile');
+const { UnsupportedFileTypeError } = require('./errors');
+const { isAuthorized } = require('./auth');
 
 /**
  * Extrae texto de un archivo buffer según su tipo.
@@ -34,7 +36,7 @@ async function extractTextFromBuffer(buffer, filename) {
     case 'jpeg':
       return textExtractors.extractTextFromImage(buffer);
     default:
-      throw new Error('Tipo de archivo no soportado para extracción de texto');
+      throw new UnsupportedFileTypeError('Tipo de archivo no soportado para extracción de texto');
   }
 }
 
@@ -47,14 +49,18 @@ exports.generarFormularioHttp = (req, res) => {
   // Habilitar CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-api-key');
   if (req.method === 'OPTIONS') {
     res.status(204).end();
     return;
   }
   if (req.method !== 'POST') {
-    res.writeHead(405, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ success: false, error: 'Método no permitido. Use POST.' }));
+    res.status(405).json({ success: false, error: 'Método no permitido. Use POST.' });
+    return;
+  }
+  // Añadir autenticación por API Key
+  if (!isAuthorized(req)) {
+    res.status(401).json({ success: false, error: 'No autorizado. API key inválida.' });
     return;
   }
 
@@ -81,33 +87,28 @@ exports.generarFormularioHttp = (req, res) => {
   busboy.on('finish', async () => {
     try {
       if (!archivoNombre || !archivoBuffer.length) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: false, error: 'No se recibió ningún archivo.' }));
-        return;
+        return res.status(400).json({ success: false, error: 'No se recibió ningún archivo.' });
       }
       if (!plantilla) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: false, error: 'No se especificó la plantilla.' }));
-        return;
+        return res.status(400).json({ success: false, error: 'No se especificó la plantilla.' });
       }
       // Extraer texto real del archivo
       const textoExtraido = await extractTextFromBuffer(archivoBuffer, archivoNombre);
       // Limitar el texto a 15,000 caracteres
       const textoLimitado = textoExtraido.substring(0, 15000);
       // Llamar a Gemini para generar el formulario
-      let formularioData;
-      try {
-        formularioData = await llamarGemini(textoLimitado, plantilla);
-      } catch (error) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: false, error: error.message || 'Error al generar el formulario con Gemini.' }));
-        return;
-      }
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ success: true, formulario: formularioData }));
+      const formularioData = await llamarGemini(textoLimitado, plantilla);
+      
+      res.status(200).json({ success: true, formulario: formularioData });
     } catch (error) {
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ success: false, error: error.message || 'Error interno del servidor.' }));
+      console.error('Error en generarFormularioHttp:', error);
+      // Si el error es por un tipo de archivo no soportado, es un error del cliente (400)
+      if (error instanceof UnsupportedFileTypeError) {
+        res.status(400).json({ success: false, error: error.message });
+      } else {
+        // Para otros errores (ej. fallo en Gemini), es un error del servidor (500).
+        res.status(500).json({ success: false, error: error.message || 'Error interno del servidor.' });
+      }
     }
   });
 

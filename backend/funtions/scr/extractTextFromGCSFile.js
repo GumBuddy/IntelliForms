@@ -7,6 +7,7 @@ const { Storage } = require('@google-cloud/storage');
 const vision = require('@google-cloud/vision');
 const pdfParse = require('pdf-parse');
 const mammoth = require('mammoth');
+const { UnsupportedFileTypeError } = require('./errors');
 
 // Inicializar clientes
 const storage = new Storage();
@@ -42,7 +43,7 @@ const extractTextFromGCSFile = async (event, context) => {
         extractedText = await extractTextFromImage(fileBuffer);
         break;
       default:
-        throw new Error(`Tipo de archivo no soportado: .${fileExtension}`);
+        throw new UnsupportedFileTypeError(`Tipo de archivo no soportado: .${fileExtension}`);
     }
 
     console.log(`Texto extraído exitosamente de ${fileName}`);

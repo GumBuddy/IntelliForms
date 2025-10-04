@@ -38,16 +38,18 @@ exports.processFile = async (message, context) => {
 
     console.log(`Iniciando procesamiento para el archivo: ${fileName} con la plantilla: ${template}`);
 
-    // 2. Simular el evento que espera `extractTextFromGCSFile`
-    // La función original espera un evento de GCS, aquí lo construimos manualmente.
-    const gcsEvent = {
-      bucket: bucket,
-      name: fileName,
-    };
-
-    // 3. Extraer el texto del archivo
+    // 2. Extraer el texto del archivo
     console.log(`Paso 1: Extrayendo texto de gs://${bucket}/${fileName}`);
-    const textoExtraido = await extractTextFromGCSFile(gcsEvent);
+    let textoExtraido;
+    try {
+      // La función `extractTextFromGCSFile` espera un objeto de evento con `bucket` y `name`.
+      textoExtraido = await extractTextFromGCSFile({ bucket, name: fileName });
+    } catch (extractionError) {
+      console.error(`Falló la extracción de texto para ${fileName}.`, extractionError);
+      // Termina la ejecución para evitar llamar a Gemini con datos vacíos.
+      // Podrías agregar una notificación o guardar un estado de error aquí.
+      return;
+    }
 
     if (!textoExtraido || textoExtraido.trim() === '') {
         console.warn(`No se extrajo texto del archivo ${fileName}. Proceso terminado.`);
@@ -55,17 +57,17 @@ exports.processFile = async (message, context) => {
         return;
     }
 
-    console.log(`Paso 2: Texto extraído. Llamando a Gemini...`);
+    console.log(`Paso 2: Texto extraído (${textoExtraido.length} caracteres). Llamando a Gemini...`);
     // Limitar el texto para no exceder los límites de la API
     const textoLimitado = textoExtraido.substring(0, 15000);
 
-    // 4. Generar el formulario con Gemini
+    // 3. Generar el formulario con Gemini
     const formularioGenerado = await llamarGemini(textoLimitado, template);
 
     console.log(`Paso 3: Formulario generado con éxito para ${fileName}.`);
     console.log(JSON.stringify(formularioGenerado, null, 2));
 
-    // 5. (PASO SIGUIENTE) Guardar el resultado en Firestore
+    // 4. (PASO SIGUIENTE) Guardar el resultado en Firestore
     // await firestore.collection('formularios').doc(fileName).set({
     //   ...formularioGenerado,
     //   status: 'completado',

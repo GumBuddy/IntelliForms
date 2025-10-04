@@ -10,6 +10,7 @@
 
 const { Storage } = require('@google-cloud/storage');
 const storage = new Storage();
+const { isAuthorized } = require('./auth');
 
 // Configuración de variables de entorno
 const BUCKET_NAME = process.env.BUCKET_NAME || 'intelliforms-uploads';
@@ -129,13 +130,6 @@ async function generateSignedUrl(fileName, fileExtension, fileSize) {
  * @param {Object} request - Objeto de solicitud HTTP
  * @param {Object} response - Objeto de respuesta HTTP
  */
-// --- Autenticación por API Key ---
-function isAuthorized(request) {
-  const apiKey = process.env.API_KEY;
-  const clientKey = request.get('x-api-key') || request.headers['x-api-key'];
-  return apiKey && clientKey && apiKey === clientKey;
-}
-
 exports.generateUploadUrl = async (request, response) => {
   try {
     // Autenticación por API Key
