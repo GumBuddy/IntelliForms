@@ -7,8 +7,8 @@
  * @module api
  */
 
-// URL base del API backend, configurable a través de variables de entorno
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://tu-region-tu-proyecto.cloudfunctions.net';
+// Ahora usaremos una ruta relativa que Firebase Hosting redirigirá a nuestra función 'api'.
+const API_BASE_URL = '/api';
 
 /**
  * Realiza una solicitud HTTP al backend

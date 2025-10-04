@@ -9,7 +9,7 @@
 
 // Aquí puedes importar otras dependencias si es necesario
 const { PubSub } = require('@google-cloud/pubsub');
-const pubsub = new PubSub();
+let pubsub; // Declarar pero no inicializar
 const { isAuthorized } = require('./auth');
 
 // Nombres de recursos obtenidos desde las variables de entorno para mayor portabilidad.
@@ -17,31 +17,23 @@ const TOPIC_NAME = process.env.PUBSUB_TOPIC_NAME;
 const BUCKET_NAME = process.env.GCS_BUCKET_NAME;
 
 /**
- * Valida que las variables de entorno necesarias estén configuradas.
- */
-if (!TOPIC_NAME || !BUCKET_NAME) {
-  console.error('Error crítico: Las variables de entorno PUBSUB_TOPIC_NAME y GCS_BUCKET_NAME deben estar definidas.');
-}
-/**
  * Función principal de Google Cloud Functions para manejar la notificación post-upload
  *
  * @param {Object} request - Objeto de solicitud HTTP
  * @param {Object} response - Objeto de respuesta HTTP
  */
-exports.notifyFileUploaded = async (request, response) => {
+const notifyFileUploadedHandler = async (request, response) => {
   try {
+    // Validar variables de entorno al inicio de la ejecución
+    if (!TOPIC_NAME || !BUCKET_NAME) {
+      console.error('Error crítico: Las variables de entorno PUBSUB_TOPIC_NAME y GCS_BUCKET_NAME no están configuradas en el entorno de la función.');
+      return response.status(500).json({ success: false, error: 'Error de configuración del servidor.' });
+    }
     // Autenticación por API Key
     if (!isAuthorized(request)) {
       response.status(401).json({
         success: false,
         error: 'No autorizado. API key inválida.'
-      });
-      return;
-    }
-    if (request.method !== 'POST') {
-      response.status(405).json({
-        success: false,
-        error: 'Método no permitido. Use POST.'
       });
       return;
     }
@@ -62,6 +54,10 @@ exports.notifyFileUploaded = async (request, response) => {
     };
 
     // Publica un mensaje en el tema de Pub/Sub para iniciar la extracción y generación
+    // Inicializar el cliente de PubSub si aún no existe (Lazy Initialization)
+    if (!pubsub) {
+      pubsub = new PubSub();
+    }
     const dataBuffer = Buffer.from(JSON.stringify(messageData));
     const messageId = await pubsub.topic(TOPIC_NAME).publishMessage({ data: dataBuffer });
 
@@ -80,3 +76,5 @@ exports.notifyFileUploaded = async (request, response) => {
     });
   }
 };
+
+module.exports = { notifyFileUploaded: notifyFileUploadedHandler };

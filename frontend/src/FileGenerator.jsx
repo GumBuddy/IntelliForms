@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './FileGenerator.css';
+import { get, post } from './Services/api'; // Importar los métodos del servicio centralizado
 
 // --- Subcomponente para renderizar el formulario dinámico ---
 const DynamicForm = ({ formData }) => {
@@ -32,10 +33,6 @@ const DynamicForm = ({ formData }) => {
 
 // --- Componente Principal ---
 const FileGenerator = () => {
-    // URL del endpoint del backend
-    const API_URL = '/api/generarFormularioHttp'; // Usamos el prefijo /api para el proxy
-    const TEMPLATES_API_URL = '/api/getTemplates'; // Usamos el prefijo /api para el proxy
-
     // --- Estados del Componente ---
     const [templates, setTemplates] = useState([]);
     const [selectedFile, setSelectedFile] = useState(null);
@@ -50,9 +47,8 @@ const FileGenerator = () => {
     useEffect(() => {
         const fetchTemplates = async () => {
             try {
-                const response = await fetch(TEMPLATES_API_URL);
-                const data = await response.json();
-                if (!response.ok || !data.success) {
+                const data = await get('/getTemplates'); // Usar el servicio centralizado
+                if (!data.success) {
                     throw new Error(data.error || 'No se pudieron cargar las plantillas.');
                 }
                 setTemplates(data.templates);
@@ -111,9 +107,13 @@ const FileGenerator = () => {
         formData.append('plantilla', selectedTemplate);
 
         try {
-            const response = await fetch(API_URL, {
+            // Para enviar FormData, no podemos usar nuestro 'post' helper que asume JSON.
+            // Hacemos un fetch directo aquí, pero asegurándonos de que la URL es correcta.
+            const response = await fetch('/api/generarFormularioHttp', {
                 method: 'POST',
                 body: formData,
+                // No establecemos 'Content-Type', el navegador lo hará por nosotros para FormData.
+                headers: { 'x-api-key': process.env.REACT_APP_API_KEY || '' }
             });
 
             const data = await response.json();

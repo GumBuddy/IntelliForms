@@ -2,11 +2,10 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 
 module.exports = function(app) {
   app.use(
-    '/api', // Redirige cualquier ruta que comience con /api
+    '/api',
     createProxyMiddleware({
-      target: 'http://localhost:8080', // La dirección de tu backend
+      target: 'https://us-central1-intelliforms-474101.cloudfunctions.net',
       changeOrigin: true,
-      pathRewrite: { '^/api': '' }, // Elimina /api del path antes de enviarlo al backend
     })
   );
 };

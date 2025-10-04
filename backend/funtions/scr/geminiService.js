@@ -4,6 +4,8 @@
  */
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
+let genAI; // Declarar pero no inicializar
+
 /**
  * Llama a la API de Gemini y devuelve un JSON con la estructura del formulario generado.
  * @param {string} texto - Texto extraído del documento.
@@ -12,7 +14,10 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
  */
 async function llamarGemini(texto, plantilla) {
     try {
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        // Inicializar el cliente de Gemini si aún no existe (Lazy Initialization)
+        if (!genAI) {
+            genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        }
         const model = genAI.getGenerativeModel({ model: "gemini-pro" });
         const prompt = `Eres un generador de formularios experto. Analiza el siguiente texto y devuelve un JSON con los campos necesarios para un formulario dinámico.\n\nConsidera la plantilla \"${plantilla}\" para generar el formulario.\n\nEl JSON debe tener la siguiente estructura:\n{\n  \"titulo\": \"Título del formulario\",\n  \"campos\": [\n    {\n      \"id\": \"identificador_unico\",\n      \"etiqueta\": \"Etiqueta visible para el usuario\",\n      \"tipo\": \"texto|email|numero|textarea|select|radio|checkbox\",\n      \"requerido\": true|false,\n      \"placeholder\": \"Texto de ayuda (opcional)\",\n      \"opciones\": [\n        {\"valor\": \"valor1\", \"texto\": \"Texto visible 1\"},\n        {\"valor\": \"valor2\", \"texto\": \"Texto visible 2\"}\n      ] // Solo para select, radio y checkbox\n    }\n  ]\n}\n\nInstrucciones:\n1. Genera un título descriptivo para el formulario basado en el contenido del texto.\n2. Extrae las entidades principales del texto y conviértelas en campos del formulario.\n3. Asigna tipos de campo adecuados según la naturaleza de la información:\n   - \"texto\" para nombres, apellidos, direcciones\n   - \"email\" para correos electrónicos\n   - \"numero\" para edades, cantidades, teléfonos\n   - \"textarea\" para comentarios, descripciones largas\n   - \"select\" para opciones mutuamente excluyentes\n   - \"radio\" para opciones limitadas (3-5)\n   - \"checkbox\" para múltiples selecciones\n4. Marca como requeridos los campos que son esenciales según el contexto.\n5. Para campos de selección, proporciona opciones razonables basadas en el contexto.\n\nTexto a analizar:\n\"\"\"\n ${texto}\n\"\"\"\n\nDevuelve únicamente el JSON sin ningún texto adicional, explicación o formato markdown.`;
         const result = await model.generateContent(prompt);

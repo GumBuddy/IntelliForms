@@ -9,7 +9,7 @@
  */
 
 const { Storage } = require('@google-cloud/storage');
-const storage = new Storage();
+let storage; // Declarar pero no inicializar
 const { isAuthorized } = require('./auth');
 
 // Configuración de variables de entorno
@@ -98,6 +98,10 @@ async function generateSignedUrl(fileName, fileExtension, fileSize) {
       : `.${fileExtension.toLowerCase()}`;
     // Crear el nombre completo del archivo
     const fullFileName = `${fileName}${normalizedExtension}`;
+    // Inicializar el cliente de Storage si aún no existe (Lazy Initialization)
+    if (!storage) {
+      storage = new Storage();
+    }
     // Obtener referencia al bucket
     const bucket = storage.bucket(BUCKET_NAME);
     // Crear referencia al archivo
@@ -130,21 +134,13 @@ async function generateSignedUrl(fileName, fileExtension, fileSize) {
  * @param {Object} request - Objeto de solicitud HTTP
  * @param {Object} response - Objeto de respuesta HTTP
  */
-exports.generateUploadUrl = async (request, response) => {
+const generateUploadUrlHandler = async (request, response) => {
   try {
     // Autenticación por API Key
     if (!isAuthorized(request)) {
       response.status(401).json({
         success: false,
         error: 'No autorizado. API key inválida.'
-      });
-      return;
-    }
-    // Solo aceptar solicitudes POST
-    if (request.method !== 'POST') {
-      response.status(405).json({
-        success: false,
-        error: 'Método no permitido. Use POST.'
       });
       return;
     }
@@ -191,3 +187,5 @@ exports.generateUploadUrl = async (request, response) => {
     });
   }
 };
+
+module.exports = { generateUploadUrl: generateUploadUrlHandler };

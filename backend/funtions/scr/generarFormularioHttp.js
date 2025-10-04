@@ -45,17 +45,9 @@ async function extractTextFromBuffer(buffer, filename) {
  * @param {import('http').IncomingMessage} req
  * @param {import('http').ServerResponse} res
  */
-exports.generarFormularioHttp = (req, res) => {
-  // Habilitar CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-api-key');
+const generarFormularioHttpHandler = (req, res) => {
   if (req.method === 'OPTIONS') {
-    res.status(204).end();
-    return;
-  }
-  if (req.method !== 'POST') {
-    res.status(405).json({ success: false, error: 'Método no permitido. Use POST.' });
+    res.status(204).send(''); // El middleware de CORS ya maneja esto, pero es una buena práctica.
     return;
   }
   // Añadir autenticación por API Key
@@ -112,5 +104,12 @@ exports.generarFormularioHttp = (req, res) => {
     }
   });
 
+  busboy.on('error', (err) => {
+    console.error('Error de Busboy:', err);
+    res.status(400).json({ success: false, error: 'Error al procesar el archivo subido.' });
+  });
+
   req.pipe(busboy);
 };
+
+module.exports = { generarFormularioHttp: generarFormularioHttpHandler };

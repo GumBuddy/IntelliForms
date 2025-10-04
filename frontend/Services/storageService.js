@@ -8,8 +8,7 @@
  * @module storageService
  */
 
-// URL base del API backend, configurable a través de variables de entorno
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://tu-region-tu-proyecto.cloudfunctions.net';
+import { post } from './api'; // Importar el método POST centralizado
 
 /**
  * Solicita una URL firmada para subir un archivo
@@ -27,46 +26,17 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://tu-region-tu
  * @throws {Error} - Si hay un error en la solicitud o respuesta del servidor
  */
 export const requestUploadUrl = async (fileName, fileExtension, fileSize) => {
-  try {
-    // Construir la URL completa del endpoint
-    const endpointUrl = `${API_BASE_URL}/generateUploadUrl`;
-    // Realizar la solicitud POST al backend
-    const response = await fetch(endpointUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.REACT_APP_API_KEY || ''
-      },
-      body: JSON.stringify({
-        fileName,
-        fileExtension,
-        fileSize
-      })
-    });
-
-    // Verificar si la respuesta fue exitosa
-    if (!response.ok) {
-      // Intentar obtener el mensaje de error del cuerpo de la respuesta
-      let errorMessage = 'Error al solicitar URL de subida';
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.error || errorMessage;
-      } catch (parseError) {
-        // Si no se puede parsear la respuesta, usar el mensaje genérico
-        console.error('Error al parsear respuesta de error:', parseError);
-      }
-      
-      throw new Error(errorMessage);
+  const result = await post('/generateUploadUrl', {
+    fileName,
+    fileExtension,
+    fileSize
+  }, {
+    headers: {
+      'x-api-key': process.env.REACT_APP_API_KEY || ''
     }
+  });
 
-    // Parsear la respuesta JSON
-    const result = await response.json();
-    
-    // Verificar si la operación fue exitosa
-    if (!result.success) {
-      throw new Error(result.error || 'Error desconocido al generar URL de subida');
-    }
-    
+  if (result.success) {
     // Devolver los datos relevantes de la respuesta
     return {
       signedUrl: result.signedUrl,
@@ -74,12 +44,9 @@ export const requestUploadUrl = async (fileName, fileExtension, fileSize) => {
       mimeType: result.mimeType,
       expirationTime: result.expirationTime
     };
-  } catch (error) {
-    console.error('Error en requestUploadUrl:', error);
-    
-    // Propagar el error para que el componente lo maneje
-    throw error;
   }
+
+  throw new Error(result.error || 'Error desconocido al generar URL de subida');
 };
 
 /**
@@ -135,53 +102,19 @@ export const uploadFileToStorage = (file, signedUrl, onProgress = null) => {
  * @returns {Promise<Object>} - Promesa que resuelve con la respuesta del servidor
  * @throws {Error} - Si hay un error en la solicitud o respuesta del servidor
  */
-export const notifyFileProcessing = async (fileName, fileUrl, fileType) => {
-  try {
-    // Construir la URL completa del endpoint
-    const endpointUrl = `${API_BASE_URL}/notifyFileUploaded`;
-    // Realizar la solicitud POST al backend
-    const response = await fetch(endpointUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.REACT_APP_API_KEY || ''
-      },
-      body: JSON.stringify({
-        fileName,
-        fileUrl,
-        fileType
-      })
-    });
-
-    // Verificar si la respuesta fue exitosa
-    if (!response.ok) {
-      // Intentar obtener el mensaje de error del cuerpo de la respuesta
-      let errorMessage = 'Error al iniciar el procesamiento del archivo';
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.error || errorMessage;
-      } catch (parseError) {
-        // Si no se puede parsear la respuesta, usar el mensaje genérico
-        console.error('Error al parsear respuesta de error:', parseError);
-      }
-      
-      throw new Error(errorMessage);
+export const notifyFileProcessing = async (fileName, template) => {
+  const result = await post('/notifyFileUploaded', {
+    fileName,
+    template
+  }, {
+    headers: {
+      'x-api-key': process.env.REACT_APP_API_KEY || ''
     }
+  });
 
-    // Parsear la respuesta JSON
-    const result = await response.json();
-    
-    // Verificar si la operación fue exitosa
-    if (!result.success) {
-      throw new Error(result.error || 'Error desconocido al iniciar procesamiento');
-    }
-    
-    // Devolver los datos relevantes de la respuesta
+  if (result.success) {
     return result;
-  } catch (error) {
-    console.error('Error en notifyFileProcessing:', error);
-    
-    // Propagar el error para que el componente lo maneje
-    throw error;
   }
+
+  throw new Error(result.error || 'Error desconocido al iniciar procesamiento');
 };

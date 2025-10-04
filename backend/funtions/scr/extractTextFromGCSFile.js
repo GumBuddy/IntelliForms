@@ -10,11 +10,12 @@ const mammoth = require('mammoth');
 const { UnsupportedFileTypeError } = require('./errors');
 
 // Inicializar clientes
-const storage = new Storage();
-const visionClient = new vision.ImageAnnotatorClient();
+let storage;
+let visionClient;
 
 const extractTextFromGCSFile = async (event, context) => {
   try {
+    
     // Extraer información del archivo del evento
     const bucketName = event.bucket;
     const fileName = event.name;
@@ -50,7 +51,8 @@ const extractTextFromGCSFile = async (event, context) => {
     return extractedText;
   } catch (error) {
     console.error('Error en la extracción de texto:', error);
-    throw new Error(`Error al procesar el archivo: ${error.message}`);
+    // Propagar el error original para mantener el stack trace y el tipo de error
+    throw error;
   }
 };
 
@@ -74,6 +76,10 @@ function getFileExtension(fileName) {
  * @returns {Promise<Buffer>} Buffer del archivo
  */
 async function downloadFileAsBuffer(bucketName, fileName) {
+  // Inicializar el cliente de Storage si aún no existe (Lazy Initialization)
+  if (!storage) {
+    storage = new Storage();
+  }
   const bucket = storage.bucket(bucketName);
   const file = bucket.file(fileName);
   
@@ -129,6 +135,10 @@ async function extractTextFromDocx(fileBuffer) {
  * @returns {Promise<string>} Texto extraído
  */
 async function extractTextFromImage(fileBuffer) {
+  // Inicializar el cliente de Vision si aún no existe (Lazy Initialization)
+  if (!visionClient) {
+    visionClient = new vision.ImageAnnotatorClient();
+  }
   const request = {
     image: {
       content: fileBuffer
